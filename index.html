@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MTG Collection — deck stats for any Moxfield or Archidekt user</title>
+<meta name="description" content="Free Magic: The Gathering deck statistics. Enter a Moxfield or Archidekt username to see deck values, mana curves, card roles, collection overlap and a proper Commander bracket assessment.">
+<script>
+  // Apply the stored theme before first paint so there is no flash.
+  try { document.documentElement.dataset.theme = localStorage.getItem('mtg-theme') || 'dark'; } catch (e) {}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🃏</text></svg>">
+</head>
+<body>
+<header>
+  <h1><a href="#/" id="home">MTG Collection</a></h1>
+  <nav id="nav" hidden>
+    <a href="#" data-route="overview">Decks</a>
+    <a href="#" data-route="collection">Collection</a>
+    <a href="#" data-route="cards">Top cards</a>
+  </nav>
+  <div class="headtools">
+    <div class="who" id="who" hidden></div>
+    <button class="ghost" id="currency" type="button" title="Switch currency">EUR</button>
+    <div class="themeswitch">
+      <span class="lbl" id="themeLabel">Dark</span>
+      <button id="themeToggle" type="button" aria-label="Toggle light and dark theme"></button>
+    </div>
+  </div>
+</header>
+
+<main id="view"></main>
+
+<footer>
+  <span>Card data from <a href="https://moxfield.com" target="_blank" rel="noopener">Moxfield</a>,
+  <a href="https://archidekt.com" target="_blank" rel="noopener">Archidekt</a>,
+  <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall</a> and
+  <a href="https://commanderspellbook.com" target="_blank" rel="noopener">Commander Spellbook</a>.</span>
+  <span>Not affiliated with or endorsed by Wizards of the Coast.
+  <a href="https://github.com/yousdje/MTG-collection" target="_blank" rel="noopener">Source on GitHub</a>.</span>
+</footer>
+
+<script src="./config.js"></script>
+<script src="./vendor/chart.min.js"></script>
+<script type="module" src="./app.js"></script>
+</body>
+</html>

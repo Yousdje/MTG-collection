@@ -1,0 +1,124 @@
+# MTG Collection
+
+Free deck statistics for any public **Moxfield** or **Archidekt** collection.
+Type a username, get deck values, mana curves, card roles, collection overlap —
+and a Commander bracket assessment computed from the actual 99, not from
+whatever the deck's author typed into the bracket field.
+
+**→ [Live site](https://yousdje.github.io/MTG-collection/)**
+
+No account, no tracking, no ads. Everything is computed in your browser.
+
+## What it does
+
+| | |
+|---|---|
+| **Bracket assessment** | Game Changers, two-card infinite combos, mass land denial and extra turns, against the official criteria as of the Oct 2025 / Feb 2026 updates. Reports a *floor* with an honest range when combos are hard to classify. |
+| **Collection overlap** | Which cards appear in several decks, and what one copy of each would actually cost versus buying every deck separately. |
+| **Card roles** | Ramp, removal, draw, tutors, protection and 13 more, derived by regex from oracle text. Untagged cards stay untagged — that is useful signal, not a gap. |
+| **Deck stats** | Value, mana curve, type spread, colour pips, and a sortable, filterable card table. |
+
+### Two things it deliberately does not do
+
+**It does not trust the site's bracket field.** That number is self-reported.
+This tool recomputes it from the cards every time.
+
+**It does not count tutors against you.** Tutor limits were part of the original
+February 2025 bracket beta but were **removed in the October 2025 update**. Many
+third-party bracket calculators still apply them and are wrong. Tutors are shown
+for context only.
+
+## Honest limitations
+
+- **Brackets 1 and 5 are not computable from a decklist.** Exhibition and cEDH
+  are statements of intent and metagame, not properties of the 99. The engine
+  returns 2–4 and reports a floor: the deck is legal at that bracket and every
+  bracket above it.
+- **"Collection" means the union of your decks**, not the cards you own. Neither
+  site exposes a private collection through its API.
+- **Only public decks are visible.** Private and unlisted decks never appear.
+- **Prices differ slightly between sites.** Moxfield prices the printing the
+  author selected. Archidekt is asked for the *cheapest* printing, because
+  otherwise a single Summer Magic Island can add €5,000 to a precon.
+- **Moxfield lookups can fail.** Moxfield actively blocks automated access.
+  Archidekt is the more reliable of the two.
+
+## How it is put together
+
+```
+Browser (GitHub Pages, static)
+   │  all stats, tagging and bracket logic run here
+   ▼
+Cloudflare Worker  ── adds browser headers + CORS, caches at the edge
+   ▼
+api2.moxfield.com   archidekt.com
+```
+
+A static page **cannot** call either deck site directly:
+
+- Moxfield sits behind Cloudflare and rejects anything that does not look like a
+  browser. A browser cannot help: `Referer`, `Origin` and `Sec-Fetch-*` are
+  [forbidden header names](https://developer.mozilla.org/en-US/docs/Glossary/Forbidden_header_name)
+  that JavaScript is not allowed to set.
+- Archidekt pins `Access-Control-Allow-Origin` to `http://localhost:3000`.
+
+So there is one small Worker in front. It is not a general proxy: it accepts
+four request shapes, rebuilds every upstream URL from validated parameters, and
+caches responses at the edge so a popular deck is fetched once, not once per
+visitor.
+
+| Path | |
+|---|---|
+| `app.js` | views and routing |
+| `src/sources.js` | Moxfield + Archidekt adapters → one deck model |
+| `src/classify.js` | oracle-text rules → card roles |
+| `src/brackets.js` | Commander bracket engine |
+| `src/stats.js` | per-deck and collection aggregation |
+| `data/` | Game Changers list + distilled combo index, refreshed weekly by CI |
+| `worker/` | the Cloudflare Worker |
+
+There is no build step and no framework. It is ES modules and one vendored copy
+of Chart.js.
+
+## Running it yourself
+
+```bash
+git clone https://github.com/yousdje/MTG-collection
+cd MTG-collection
+
+# terminal 1 — the proxy
+cd worker && npx wrangler dev --port 8787
+
+# terminal 2 — the site
+python3 -m http.server 8010
+```
+
+Open <http://localhost:8010>. `config.js` points at `localhost:8787`
+automatically when the page is served from localhost.
+
+To deploy your own: `cd worker && npx wrangler deploy`, then put the Worker URL
+in `config.js` and add your Pages origin to `ALLOWED_ORIGINS` in
+`worker/src/worker.js`.
+
+## Reference data
+
+`data/game_changers.json` and `data/combos.json` are regenerated weekly by a
+GitHub Action:
+
+- **Game Changers** — from Scryfall's `is:gamechanger` query, which tracks the
+  official WotC list. Never hardcoded; it changes.
+- **Combos** — Commander Spellbook's two-card variants, filtered to those that
+  actually end the game and distilled to a name-pair index. The full bulk export
+  is ~580 MB; this is ~670 KB.
+
+## Credits
+
+Card data from [Moxfield](https://moxfield.com), [Archidekt](https://archidekt.com),
+[Scryfall](https://scryfall.com) and [Commander Spellbook](https://commanderspellbook.com).
+
+Not affiliated with or endorsed by Wizards of the Coast. Magic: The Gathering is
+a trademark of Wizards of the Coast LLC.
+
+## Licence
+
+MIT — see [LICENSE](LICENSE).

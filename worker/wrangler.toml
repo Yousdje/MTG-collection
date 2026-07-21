@@ -1,0 +1,9 @@
+name = "mtg-collection-api"
+main = "src/worker.js"
+compatibility_date = "2026-07-21"
+
+# No bindings, no storage, no secrets — this Worker only reshapes public
+# requests. Nothing here is worth stealing, which is deliberate.
+
+[observability]
+enabled = true
