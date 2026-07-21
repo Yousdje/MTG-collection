@@ -8,7 +8,7 @@
  * and put its URL in PROD_API below. Nothing else needs to change.
  */
 (function () {
-  const PROD_API = 'https://mtg-collection-api.yousdje.workers.dev';
+  const PROD_API = 'https://mtg-collection-api.ur-advisor.workers.dev';
   const DEV_API = 'http://localhost:8787';
 
   // Serving from localhost means someone is running `wrangler dev` next door.
